@@ -1,5 +1,33 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './App.css'
+
+// Internal component to handle cell flashing independently based on delta changes
+const AnimatedCell = ({ value }) => {
+  const prevValueRef = useRef(value);
+  const [flashClass, setFlashClass] = useState('');
+
+  useEffect(() => {
+    // Only flash if the value has genuinely changed and is not undefined
+    if (value !== prevValueRef.current && prevValueRef.current !== undefined) {
+      if (value > prevValueRef.current) {
+         setFlashClass('flash-green'); // Positive Increase
+      } else if (value < prevValueRef.current) {
+         setFlashClass('flash-red');   // Negative Drop / Decrease
+      }
+      
+      const timer = setTimeout(() => {
+        setFlashClass('');
+      }, 1200);
+
+      prevValueRef.current = value;
+      return () => clearTimeout(timer);
+    } else {
+      prevValueRef.current = value;
+    }
+  }, [value]);
+
+  return <span className={`animated-cell ${flashClass}`}>{value}</span>;
+};
 
 function App() {
   const [dataGroups, setDataGroups] = useState([]);
@@ -7,7 +35,6 @@ function App() {
   const [isRunning, setIsRunning] = useState(false);
 
   // Dynamic API URL for Vercel (using fallback for local dev)
-  // Ensure the URL does not have a trailing slash
   const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, "");
 
   // Fetch summary data
@@ -79,7 +106,7 @@ function App() {
           <p>Carregando dados...</p>
         ) : (
           <div className="table-container">
-            <table className="leads-table summary-table">
+            <table className="summary-table">
               <thead>
                 <tr>
                   <th>Leadsource</th>
@@ -101,11 +128,21 @@ function App() {
                     {group.items.map((item, itemIndex) => (
                       <tr key={`${groupIndex}-${itemIndex}`}>
                         <td className="indent">{item.name}</td>
-                        <td className="text-right">{item.total}</td>
-                        <td className="text-right">{item.ja_existiam}</td>
-                        <td className="text-right">{item.varejo}</td>
-                        <td className="text-right">{item.elegiveis_portfel ?? ''}</td>
-                        <td className="text-right">{item.elegiveis_g ?? ''}</td>
+                        <td className="text-right">
+                          <AnimatedCell value={item.total} />
+                        </td>
+                        <td className="text-right">
+                          <AnimatedCell value={item.ja_existiam} />
+                        </td>
+                        <td className="text-right">
+                          <AnimatedCell value={item.varejo} />
+                        </td>
+                        <td className="text-right">
+                          <AnimatedCell value={item.elegiveis_portfel ?? 0} />
+                        </td>
+                        <td className="text-right">
+                          <AnimatedCell value={item.elegiveis_g ?? 0} />
+                        </td>
                       </tr>
                     ))}
                   </React.Fragment>

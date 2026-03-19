@@ -1,21 +1,25 @@
 :root {
-  --text-main: #1f2937;
-  --text-muted: #6b7280;
-  --bg-main: #f9fafb;
-  --bg-card: #ffffff;
-  --border-color: #e5e7eb;
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --success: #10b981;
-  --success-bg: #d1fae5;
-  --warning: #f59e0b;
-  --warning-bg: #fef3c7;
-  --danger: #ef4444;
-  --danger-bg: #fee2e2;
-  --info: #3b82f6;
-  --info-bg: #dbeafe;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  /* Slate/Dark Palette */
+  --bg-main: #0f172a;       /* Slate 900 */
+  --bg-card: #1e293b;       /* Slate 800 */
+  --text-main: #f8fafc;     /* Slate 50 */
+  --text-muted: #94a3b8;    /* Slate 400 */
+  --border-color: #334155;  /* Slate 700 */
+  
+  --primary: #818cf8;       /* Indigo 400 */
+  --primary-hover: #a5b4fc; /* Indigo 300 */
+  
+  --success: #10b981;       /* Emerald 500 */
+  --success-bg: rgba(16, 185, 129, 0.1);
+  --warning: #f59e0b;       /* Amber 500 */
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --danger: #ef4444;        /* Red 500 */
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --info: #3b82f6;          /* Blue 500 */
+  --info-bg: rgba(59, 130, 246, 0.1);
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 

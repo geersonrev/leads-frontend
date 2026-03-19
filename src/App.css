@@ -2,6 +2,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  padding-bottom: 5rem; /* Space for the CNN ticker */
   min-height: 100vh;
 }
 
@@ -195,4 +196,70 @@
   background: var(--border-color);
   padding: 4px 10px;
   border-radius: 9999px;
+}
+
+/* --- CNN BREAKING NEWS TICKER --- */
+.news-ticker-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #b91c1c; /* Deep Red CNN Style */
+  color: white;
+  height: 48px;
+  overflow: hidden;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+}
+
+.news-ticker-label {
+  background: #7f1d1d; /* Darker Red */
+  color: white;
+  padding: 0 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 0.9rem;
+  position: absolute;
+  left: 0;
+  z-index: 10;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  box-shadow: 4px 0 8px rgba(0,0,0,0.3);
+}
+
+.news-ticker-content {
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;
+  animation: ticker 25s linear infinite;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.news-ticker-wrapper:hover .news-ticker-content {
+  animation-play-state: paused;
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+.ticker-item {
+  display: inline-block;
+  margin-right: 4rem;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.ticker-item span {
+  font-weight: 800;
+  color: #fde047; /* Yellow highlight */
+  font-size: 1.1rem;
 }

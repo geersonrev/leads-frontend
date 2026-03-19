@@ -1,24 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react'
 import './App.css'
 
-// Internal component to handle cell flashing independently based on delta changes
 const AnimatedCell = ({ value }) => {
   const prevValueRef = useRef(value);
   const [flashClass, setFlashClass] = useState('');
 
   useEffect(() => {
-    // Only flash if the value has genuinely changed and is not undefined
     if (value !== prevValueRef.current && prevValueRef.current !== undefined) {
-      if (value > prevValueRef.current) {
-         setFlashClass('flash-green'); // Positive Increase
-      } else if (value < prevValueRef.current) {
-         setFlashClass('flash-red');   // Negative Drop / Decrease
-      }
+      if (value > prevValueRef.current) setFlashClass('flash-green');
+      else if (value < prevValueRef.current) setFlashClass('flash-red');
       
-      const timer = setTimeout(() => {
-        setFlashClass('');
-      }, 1200);
-
+      const timer = setTimeout(() => setFlashClass(''), 1200);
       prevValueRef.current = value;
       return () => clearTimeout(timer);
     } else {
@@ -31,13 +23,12 @@ const AnimatedCell = ({ value }) => {
 
 function App() {
   const [dataGroups, setDataGroups] = useState([]);
+  const [latestLeads, setLatestLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
 
-  // Dynamic API URL for Vercel (using fallback for local dev)
   const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, "");
 
-  // Fetch summary data
   const fetchData = () => {
     fetch(`${apiBaseUrl}/api/leads/summary`)
       .then((response) => response.json())
@@ -45,18 +36,23 @@ function App() {
         setDataGroups(data);
         setLoading(false);
       })
-      .catch((error) => console.error('Error fetching data:', error));
+      .catch((error) => console.error('Error fetching summary:', error));
   };
 
-  // Fetch simulation status
+  const fetchLatest = () => {
+    fetch(`${apiBaseUrl}/api/leads/latest`)
+      .then((response) => response.json())
+      .then((data) => setLatestLeads(data))
+      .catch((error) => console.error('Error fetching latest:', error));
+  };
+
   const fetchStatus = () => {
     fetch(`${apiBaseUrl}/api/simulation/status`)
       .then(res => res.json())
       .then(data => setIsRunning(data.isRunning))
-      .catch(err => console.error(err));
+      .catch(err => console.error('Error status:', err));
   };
 
-  // Toggle simulation state
   const toggleSimulation = () => {
     fetch(`${apiBaseUrl}/api/simulation/toggle`, { method: 'POST' })
       .then(res => res.json())
@@ -66,13 +62,18 @@ function App() {
 
   useEffect(() => {
     fetchData();
+    fetchLatest();
     fetchStatus();
     const interval = setInterval(() => {
       fetchData();
+      fetchLatest();
       fetchStatus();
-    }, 5000); // 5s update
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Filter only whales (leads that have MM in the string)
+  const whaleLeads = latestLeads.filter(lead => lead.patrimonio.includes('MM'));
 
   return (
     <div className="dashboard-container">
@@ -80,21 +81,13 @@ function App() {
         <div className="header-title-row">
           <h1>Simulador de Funil</h1>
           <div className="controls">
-            <button 
-              className={`toggle-btn ${isRunning ? 'btn-stop' : 'btn-start'}`}
-              onClick={toggleSimulation}
-            >
+            <button className={`toggle-btn ${isRunning ? 'btn-stop' : 'btn-start'}`} onClick={toggleSimulation}>
               {isRunning ? 'Pausar Simulação' : 'Iniciar Simulação'}
             </button>
-            {isRunning && (
-              <span className="live-indicator">
-                <span className="pulse"></span> AO VIVO
-              </span>
-            )}
-            {!isRunning && (
-              <span className="paused-indicator">
-                PAUSADO
-              </span>
+            {isRunning ? (
+              <span className="live-indicator"><span className="pulse"></span> AO VIVO</span>
+            ) : (
+              <span className="paused-indicator">PAUSADO</span>
             )}
           </div>
         </div>
@@ -121,44 +114,49 @@ function App() {
                 {dataGroups.map((group, groupIndex) => (
                   <React.Fragment key={groupIndex}>
                     <tr className="group-header">
-                      <td colSpan="6">
-                        <strong>{group.leadsource}</strong>
-                      </td>
+                      <td colSpan="6"><strong>{group.leadsource}</strong></td>
                     </tr>
                     {group.items.map((item, itemIndex) => (
                       <tr key={`${groupIndex}-${itemIndex}`}>
                         <td className="indent">{item.name}</td>
-                        <td className="text-right">
-                          <AnimatedCell value={item.total} />
-                        </td>
-                        <td className="text-right">
-                          <AnimatedCell value={item.ja_existiam} />
-                        </td>
-                        <td className="text-right">
-                          <AnimatedCell value={item.varejo} />
-                        </td>
-                        <td className="text-right">
-                          <AnimatedCell value={item.elegiveis_portfel ?? 0} />
-                        </td>
-                        <td className="text-right">
-                          <AnimatedCell value={item.elegiveis_g ?? 0} />
-                        </td>
+                        <td className="text-right"><AnimatedCell value={item.total} /></td>
+                        <td className="text-right"><AnimatedCell value={item.ja_existiam} /></td>
+                        <td className="text-right"><AnimatedCell value={item.varejo} /></td>
+                        <td className="text-right"><AnimatedCell value={item.elegiveis_portfel ?? 0} /></td>
+                        <td className="text-right"><AnimatedCell value={item.elegiveis_g ?? 0} /></td>
                       </tr>
                     ))}
                   </React.Fragment>
                 ))}
                 {dataGroups.length === 0 && (
-                  <tr>
-                    <td colSpan="6">Nenhum dado encontrado.</td>
-                  </tr>
+                  <tr><td colSpan="6">Nenhum dado encontrado.</td></tr>
                 )}
               </tbody>
             </table>
           </div>
         )}
       </main>
+
+      {/* CNN Ticker Bar Fixed at the bottom */}
+      {whaleLeads.length > 0 && (
+        <div className="news-ticker-wrapper">
+          <div className="news-ticker-label">BREAKING NEWS</div>
+          <div className="news-ticker-content">
+            {whaleLeads.map((lead, idx) => (
+              <span key={`${lead.nome}-${idx}`} className="ticker-item">
+                🚨 Urgente: Lead <strong>{lead.nome}</strong> acaba de despontar com patrimônio declarado acima de <span>{lead.patrimonio}</span> pelo canal {lead.leadsource} / {lead.pmp}
+              </span>
+            ))}
+            {/* Duplicated for smooth endless scrolling effect in case there's only 1 whale */}
+            {whaleLeads.map((lead, idx) => (
+              <span key={`dup-${lead.nome}-${idx}`} className="ticker-item">
+                🚨 Urgente: Lead <strong>{lead.nome}</strong> acaba de despontar com patrimônio declarado acima de <span>{lead.patrimonio}</span> pelo canal {lead.leadsource} / {lead.pmp}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-
 export default App
